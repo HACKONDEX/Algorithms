@@ -37,6 +37,10 @@ public:
     BigInteger& operator *= ( const BigInteger& other );
     BigInteger& operator /= ( const BigInteger& other );
     BigInteger& operator %= ( const BigInteger& other );
+    BigInteger& operator ++ ();
+    BigInteger& operator -- ();
+    BigInteger operator ++ ( int );
+    BigInteger operator -- ( int );
 
 private:
 
@@ -44,8 +48,8 @@ private:
     int digits_count;
     bool sign;
 
-    void convert_int( int num );
-    void convert_string( const std::string& str );
+    void convert_from_int( int num );
+    void convert_from_string( const std::string& str );
     void convert_from_reversed_string( const std::string& str );
 
     void clear();
@@ -67,12 +71,9 @@ BigInteger operator / ( const BigInteger& a, const BigInteger& b );
 BigInteger operator % ( const BigInteger& a, const BigInteger& b );
 
 
-
-
-
 ////Private methods
 
-void BigInteger::convert_int ( int num )
+void BigInteger::convert_from_int ( int num )
 {
     buffer.clear();
     digits_count = 0;
@@ -91,7 +92,7 @@ void BigInteger::convert_int ( int num )
     while( num > 0 );
 }//// V
 
-void BigInteger::convert_string( const std::string& str )
+void BigInteger::convert_from_string( const std::string& str )
 {
     buffer.clear();
     digits_count = 0;
@@ -365,18 +366,15 @@ BigInteger::BigInteger( const int &num )
 {
     this->sign = ( num >= 0 );
     this->digits_count = 0;
-    convert_int( num );
+    convert_from_int( num );
 }//// V
 
 BigInteger::BigInteger(const std::string& str)
 {
     this->digits_count = 0;
     this->sign = false;
-    this->convert_string( str );
+    this->convert_from_string( str );
 }//// V
-
-
-
 
 //// Comparisons
 
@@ -431,7 +429,7 @@ bool BigInteger::operator <= ( const BigInteger& other ) const
 
 void BigInteger::input( const std::string &str )
 {
-    this->convert_string( str );
+    this->convert_from_string( str );
 }//// V
 
 std::string BigInteger::toString() const
@@ -482,13 +480,13 @@ BigInteger& BigInteger::operator = ( const BigInteger& other )
 
 BigInteger& BigInteger::operator = ( const int &num )
 {
-    this->convert_int( num );
+    this->convert_from_int( num );
     return* this;
 }//// V
 
 BigInteger& BigInteger::operator = ( const std::string& str )
 {
-    this->convert_string( str );
+    this->convert_from_string( str );
     return* this;
 }//// V
 
@@ -720,7 +718,7 @@ BigInteger& BigInteger::operator /= ( const BigInteger& other )
     for( int i = digits_count - 1; i >= 0; --i )
     {
         str += buffer[i];
-        tmp.convert_string( str );
+        tmp.convert_from_string( str );
 
         times = 0;
         while( tmp - abs_other >= 0 )
@@ -735,7 +733,7 @@ BigInteger& BigInteger::operator /= ( const BigInteger& other )
         str = tmp.toString();
     }
 
-    this->convert_string( ans );
+    this->convert_from_string( ans );
     sign = this_sign;
     return *this;
 }
@@ -781,6 +779,32 @@ BigInteger operator % ( const BigInteger& a, const BigInteger& b )
 {
     BigInteger c = a;
     c %= b;
+    return c;
+}
+
+BigInteger& BigInteger::operator ++ ()
+{
+    *this += 1;
+    return *this;
+}
+
+BigInteger BigInteger::operator ++ ( int )
+{
+    BigInteger c = *this;
+    ++*this;
+    return c;
+}
+
+BigInteger& BigInteger::operator -- ()
+{
+    *this -= 1;
+    return *this;
+}
+
+BigInteger BigInteger::operator -- ( int )
+{
+    BigInteger c = *this;
+    --*this;
     return c;
 }
 
