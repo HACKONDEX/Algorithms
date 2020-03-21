@@ -13,6 +13,8 @@ public:
     BigInteger( const std::string& str );
     BigInteger( const BigInteger& other ) : buffer( other.buffer ), sign( other.sign ), digits_count( other.digits_count ) {}
 
+    ~BigInteger() = default;
+
     bool operator < ( const BigInteger& other) const;
     bool operator == ( const BigInteger& other ) const;
     bool operator != ( const BigInteger& other ) const;
@@ -24,8 +26,8 @@ public:
     void input( const std::string& str );
     BigInteger abs() const;
 
-    explicit operator int();
-    explicit operator bool();
+    explicit operator int() const;
+    explicit operator bool() const;
 
     BigInteger& operator = ( const BigInteger& other );
     BigInteger& operator = ( const int& num );
@@ -168,7 +170,7 @@ void BigInteger::convert_from_reversed_string( const std::string& str )
 void BigInteger::clear()
 {
     int length = buffer.length();
-    for( int i = length - 1; i > digits_count; --i )
+    for( int i = length - 1; i >= digits_count; --i )
         buffer.pop_back();
 }//// V
 
@@ -422,7 +424,7 @@ bool BigInteger::operator > ( const BigInteger& other ) const
 
 bool BigInteger::operator <= ( const BigInteger& other ) const
 {
-    return !( * this > other );
+    return !( other < *this );
 }//// V
 
 //// Other public methods
@@ -492,14 +494,14 @@ BigInteger& BigInteger::operator = ( const std::string& str )
 
 //// Implicit conversion
 
-BigInteger::operator bool()
+BigInteger::operator bool() const
 {
     if( this->digits_count == 0 )
         return false;
     return this->buffer[0] != '0';
 }//// V
 
-BigInteger::operator int()
+BigInteger::operator int() const
 {
     int ans = 0;
     for( int i = this->digits_count - 1, exp = 1; i >= 0; i--, exp *= 10 )
@@ -807,6 +809,329 @@ BigInteger BigInteger::operator -- ( int )
     --*this;
     return c;
 }
+
+
+
+
+
+//// Rational class
+
+class Rational
+{
+public:
+
+    Rational() : numerator(), denominator(), sign( true ) {}
+    Rational( const int& num );
+    Rational( const BigInteger& num );
+    Rational( const Rational& other ) : numerator( other.numerator ), denominator( other.denominator ), sign( other.sign ) {}
+
+    ~Rational() = default;
+
+    Rational& operator = ( const int& num );
+    Rational& operator = ( const BigInteger& num );
+    Rational& operator = ( const Rational& other );
+
+    bool operator < ( const Rational& other ) const;
+    bool operator == ( const Rational& other) const;
+    bool operator != ( const Rational& other ) const;
+    bool operator >= ( const Rational& other ) const;
+    bool operator > ( const Rational& other ) const;
+    bool operator <= ( const Rational& other ) const;
+
+    Rational operator - () const;
+    Rational& operator += ( const Rational& other );
+    Rational& operator -= ( const Rational& other );
+    Rational& operator *= ( const Rational& other );
+    Rational& operator /= ( const Rational& other );
+
+    std::string toString() const;
+    std::string asDecimal( size_t precision = 0 ) const;
+    explicit operator double() const;
+
+private:
+
+    BigInteger numerator;
+    BigInteger denominator;
+    bool sign;
+
+    void cut_back();
+
+
+};
+
+BigInteger GCD( const BigInteger& a, const BigInteger& b );
+Rational operator + ( const Rational& a, const Rational& b );
+Rational operator - ( const Rational& a, const Rational& b );
+Rational operator * ( const Rational& a, const Rational& b );
+Rational operator / ( const Rational& a, const Rational& b );
+
+//// Greatest common divisor
+
+BigInteger GCD( const BigInteger& a, const BigInteger& b )
+{
+    BigInteger c = a.abs();
+    BigInteger d = b.abs();
+    if( c == 0 )
+        return d;
+    if( d == 0)
+        return c;
+    if( d < c )
+        return  GCD( d, c % d );
+    else
+        return  GCD( c, d % c );
+}
+
+//// Constructors
+
+Rational::Rational( const int &num )
+{
+    sign = true;
+    numerator = num;
+    denominator = 1;
+    if ( num < 0 )
+    {
+        sign = false;
+        numerator *= -1;
+    }
+}
+
+Rational::Rational( const BigInteger& num ) {
+    sign = true;
+    numerator = num;
+    denominator = 1;
+    if (num < 0)
+    {
+        sign = false;
+        numerator *= -1;
+    }
+}
+
+//// Private methods
+
+void Rational::cut_back()
+{
+    if( denominator == 1 )
+        return;
+    BigInteger gcd = GCD( denominator, numerator );
+    if( gcd != 1 )
+    {
+        denominator /= gcd;
+        numerator /= gcd;
+    }
+}
+
+//// Copy operators
+
+Rational& Rational::operator = ( const int& num )
+{
+    sign = true;
+    numerator = num;
+    denominator = 1;
+    if( num < 0 )
+    {
+        sign = false;
+        numerator *= -1;
+    }
+    return *this;
+}
+
+Rational& Rational::operator = ( const BigInteger& num )
+{
+    sign = true;
+    numerator = num;
+    denominator = 1;
+    if( num < 0 )
+    {
+        sign = false;
+        numerator *= -1;
+    }
+    return *this;
+}
+
+Rational& Rational::operator = ( const Rational& other )
+{
+    sign = other.sign;
+    numerator = other.numerator;
+    denominator = other.denominator;
+    return *this;
+}
+
+//// Comparison operators
+
+bool Rational::operator < ( const Rational& other ) const
+{
+    if( sign == other.sign )
+        return ( ( numerator * other.denominator ) < ( other.numerator * denominator ) == sign );
+    else
+        return !sign;
+}
+
+bool Rational::operator == ( const Rational& other ) const
+{
+    return !( *this < other ) && !( other < *this );
+}
+
+bool Rational::operator != ( const Rational& other ) const
+{
+    return *this < other || other < *this;
+}
+
+bool Rational::operator >= ( const Rational& other ) const
+{
+    return !( *this < other );
+}
+
+bool Rational::operator > ( const Rational& other ) const
+{
+    return other < *this;
+}
+
+bool Rational::operator <= ( const Rational& other ) const
+{
+    return !( other < *this );
+}
+
+//// Arithmetical operators
+
+Rational Rational::operator - () const
+{
+    Rational a = *this;
+    if( a.numerator != 0 )
+        a.sign = !sign;
+    return a;
+}
+
+Rational& Rational::operator += ( const Rational &other )
+{
+    if( sign == other.sign )
+        numerator = numerator * other.denominator + denominator * other.numerator;
+    else if( sign )
+        numerator = numerator * other.denominator - denominator * other.numerator;
+    else
+        numerator = denominator * other.numerator - numerator * other.denominator;
+
+    if( numerator < 0 )
+    {
+        numerator *= -1;
+        sign = false;
+    }
+    denominator *= other.denominator;
+    cut_back();
+    return *this;
+}
+
+Rational& Rational::operator -= ( const Rational& other )
+{
+    return *this += -other;
+}
+
+Rational operator + ( const Rational& a, const Rational& b )
+{
+    Rational c = a;
+    c += b;
+    return c;
+}
+
+Rational operator - ( const Rational& a, const Rational& b )
+{
+    Rational c = a;
+    c -= b;
+    return c;
+}
+
+Rational& Rational::operator *= ( const Rational& other )
+{
+    sign = ( sign == other.sign );
+    numerator *= other.numerator;
+    denominator *= other.denominator;
+    cut_back();
+    return *this;
+}
+
+Rational operator * ( const Rational& a, const Rational& b )
+{
+    Rational c = a;
+    c *= b;
+    return c;
+}
+
+Rational& Rational::operator /= ( const Rational& other )
+{
+    if( other.numerator == 0 )
+        assert( false );
+
+    sign = ( sign == other.sign );
+    numerator *= other.denominator;
+    denominator *= other.numerator;
+    cut_back();
+    return *this;
+}
+
+Rational operator / ( const Rational& a, const Rational& b )
+{
+    Rational c = a;
+    c /= b;
+    return c;
+}
+
+//// Public methods
+
+std::string Rational::toString() const
+{
+    std::string ans;
+    if ( !sign )
+        ans += '-';
+    ans += numerator.toString();
+    if( denominator != 1 )
+    {
+        ans += '/';
+        ans += denominator.toString();
+    }
+
+    return ans;
+}
+
+std::string Rational::asDecimal( size_t precision ) const
+{
+    std::string ans;
+    if( !sign )
+        ans += '-';
+    BigInteger integer_part = numerator / denominator;
+    BigInteger fractional_part = numerator % denominator;
+
+    ans += integer_part.toString();
+
+    if( precision > 0 )
+    {
+        ans += '.';
+        while (precision > 0) {
+            fractional_part *= 10;
+            ans += (fractional_part / denominator).toString();
+            fractional_part %= denominator;
+            --precision;
+        }
+    }
+
+    return ans;
+}
+
+Rational::operator double() const
+{
+    double ans = 0;
+    std::string num_str = numerator.toString();
+    std::string dem_str = denominator.toString();
+    int num = 0, dem = 0;
+    for( int i = num_str.length() - 1, j = 1; i >= 0 ; --i, j *= 10 )
+        num += j * ( num_str[i] - '0' );
+    for( int i = dem_str.length() - 1, j = 1; i >= 0; --i, j*=10 )
+        dem += j * ( dem_str[i] - '0' );
+    double num_db = num, dem_db = dem;
+    ans = num_db / dem_db;
+    return ans;
+}
+
+
+
 
 
 
