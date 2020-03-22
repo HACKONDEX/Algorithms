@@ -66,7 +66,6 @@ private:
 };
 
 void string_reverse( std::string& str );
-
 std::istream& operator >> ( std::istream& in, BigInteger& num );
 std::ostream& operator << (std::ostream& out, const BigInteger& num );
 BigInteger operator + ( const BigInteger& a, const BigInteger& b );
