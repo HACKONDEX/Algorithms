@@ -70,22 +70,16 @@ int Graph::get_vertex_count()
     return vertex_count;
 }
 
+//// Solution
 
-
-Graph* create_graph( int vertex_count, int edge_count, int* from, int* to )
+void create_graph( Graph* graph, int edge_count, int* from, int* to )
 {
-    Graph* graph = new Graph( vertex_count );
-
     for( int i = 0; i < edge_count; ++i )
         graph->add_edge( from[i] - 1, to[i] - 1 );
-
-    return graph;
 }
 
-int* sort_vertices_by_out( Graph* graph, std::vector<int> a = std::vector<int>() )
+void sort_vertices_by_out( Graph* graph, int* out )
 {
-    int* out = new int[graph->get_vertex_count()];
-
     unsigned char* colour = new unsigned char[graph->get_vertex_count()];
     for( int i = 0; i < graph->get_vertex_count(); ++i)
         colour[i] = 0;
@@ -127,28 +121,31 @@ int* sort_vertices_by_out( Graph* graph, std::vector<int> a = std::vector<int>()
     }
 
     delete[] colour;
+}
 
-    return out;
+void set_initial_values( int* connected_components, unsigned char* colour, int n )
+{
+    for( int i = 0; i < n; ++i )
+    {
+        connected_components[i] = 0;
+        colour[i] = 0;
+    }
+    connected_components[n] = 0;
 }
 
 //возвращает массив показывающий принадлежность вершин к компонентам связности
-int* break_into_connected_components( Graph* graph, Graph* inverted_graph )
+void break_into_connected_components( Graph* graph, int* connected_components, Graph* inverted_graph )
 {
-    int* connected_components = new int[graph->get_vertex_count() + 1];
-    for( int i = 0; i < graph->get_vertex_count(); ++i )
-        connected_components[i] = 0;
-
-    int* sorted_by_out_time_vertices = sort_vertices_by_out( graph );
-
-    auto* colour = new unsigned char[graph->get_vertex_count()];
-    for( int i = 0; i < graph->get_vertex_count(); ++i)
-        colour[i] = 0;
+    int n = graph->get_vertex_count();
+    int* sorted_by_out_time_vertices = new int[n];
+    sort_vertices_by_out( graph, sorted_by_out_time_vertices );
+    auto* colour = new unsigned char[n];
+    set_initial_values( connected_components, colour, n );
 
     int vertex = 0, number_of_component = 0;
     std::stack< int > stack;
     std::vector< int > next_vertices;
-
-    for( int i = graph->get_vertex_count() - 1; i >= 0; --i )
+    for( int i = n - 1; i >= 0; --i )
     {
         if( colour[sorted_by_out_time_vertices[i]] == 0 )
         {
@@ -157,17 +154,14 @@ int* break_into_connected_components( Graph* graph, Graph* inverted_graph )
             while( !stack.empty() )
             {
                 vertex = stack.top();
-
                 if( colour[vertex] == 0 )
                 {
                     colour[vertex] = 1;
                     next_vertices = inverted_graph->get_next_vertices( vertex );
 
                     for( int i = 0; i < next_vertices.size(); ++i )
-                    {
                         if( colour[next_vertices[i]] == 0 )
                             stack.push( next_vertices[i] );
-                    }
                 }
                 else if( colour[vertex] == 1 )
                 {
@@ -180,17 +174,13 @@ int* break_into_connected_components( Graph* graph, Graph* inverted_graph )
             }
         }
     }
-
     connected_components[graph->get_vertex_count()] = number_of_component;
-
     delete[] sorted_by_out_time_vertices;
-
-    return connected_components;
+    delete[] colour;
 }
 
-std::pair< int, int >* find_starts_ends( Graph* graph, int* connected_components )
+void find_starts_ends( Graph* graph, int* connected_components, std::pair< int, int >* starts_ends )
 {
-    auto* starts_ends = new std::pair< int, int >[connected_components[graph->get_vertex_count()] + 1];
     // first - количество пудей в вершину, second -количество путей из вершины
     for( int i = 0; i <= connected_components[graph->get_vertex_count()]; ++i )
     {
@@ -212,46 +202,44 @@ std::pair< int, int >* find_starts_ends( Graph* graph, int* connected_components
             }
         }
     }
-
-    return starts_ends;
 }
 
-int find_number_of_streets_to_add( int offices_count, int streets_count, int* from, int* to )
+void find_in_out_nodes_count( int& incoming, int& outcoming, std::pair< int, int >* starts_ends, int count  )
 {
-    int ans = 0;
-
-    Graph* graph = create_graph( offices_count, streets_count, from, to );
-    Graph* inverted_graph = create_graph( offices_count, streets_count, to, from );
-
-    int* connected_components = break_into_connected_components( graph, inverted_graph );
-
-//    std::cout << " components count  " << connected_components[graph->get_vertex_count()] << std::endl;
-//    for( int i = 0; i < graph->get_vertex_count(); ++i)
-//    {
-//        std::cout << i << " -- " << connected_components[i] << std::endl;
-//    }
-
-    auto* starts_ends = find_starts_ends( graph, connected_components );
-
-//    std::cout << " comp_graph " << std::endl;
-
-    int incoming = 0, outcoming = 0;
-    for( int i = 1; i <= connected_components[graph->get_vertex_count()]; ++i )
+    for( int i = 1; i <= count; ++i )
     {
-//        std::cout << i << "--- in = " << starts_ends[i].first << " --- out " << starts_ends[i].second << std::endl;
         if( starts_ends[i].first == 0 )
 
             ++incoming;
         if( starts_ends[i].second == 0 )
             ++outcoming;
     }
+}
 
-    if( connected_components[graph->get_vertex_count()] == 1 )
+int find_number_of_streets_to_add( int offices_count, int streets_count, int* from, int* to )
+{
+    int ans = 0;
+
+    Graph* graph = new Graph( offices_count );
+    create_graph( graph, streets_count, from, to );
+    Graph* inverted_graph = new Graph( offices_count );
+    create_graph( inverted_graph, streets_count, to, from );
+
+    int* connected_components = new int[offices_count + 1];
+    break_into_connected_components( graph, connected_components, inverted_graph );
+    auto* starts_ends = new std::pair< int, int >[connected_components[graph->get_vertex_count()] + 1];
+    find_starts_ends( graph, connected_components, starts_ends );
+
+    if( connected_components[offices_count] == 1 )
         ans = 0;
     else
-        ans = ( incoming >= outcoming ? incoming : outcoming );
+    {
+        int incoming = 0, outcoming = 0;
+        find_in_out_nodes_count( incoming, outcoming, starts_ends, connected_components[offices_count] );
+        ans = (incoming >= outcoming ? incoming : outcoming);
+    }
 
-    delete starts_ends;
+    delete[] starts_ends;
     delete[] connected_components;
     delete graph;
     delete inverted_graph;
