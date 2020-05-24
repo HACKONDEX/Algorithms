@@ -219,7 +219,8 @@ void remove_bridges_from_graph( Graph* graph, int** matrix_graph )
     }
 }
 
-void bfs_for_check( int** matrix_graph, int start, bool* checked, int vertices, std::vector< int >& component )
+void bfs_for_marking_connection_component_to_which_vertex_belongs( int** matrix_graph, int start, bool* checked,
+        int vertices, std::vector< int >& component )
 {
     std::queue< int > q;
     checked[start] = true;
@@ -802,16 +803,15 @@ void place_chain_on_surface(  int** matrix_graph, std::vector< Area >& areas,
 
 bool is_connection_component_planar( Graph* graph, int** matrix_graph, int any_vertex, bool* checked, bool* placed )
 {
-    bool ans = true;
     int verts_count = graph->get_vertex_count();
     std::vector< int > component;
     std::vector< int > placed_vertices;
     std::vector< int > chain;
-    bfs_for_check( matrix_graph, any_vertex, checked, verts_count, component );
+    bfs_for_marking_connection_component_to_which_vertex_belongs( matrix_graph, any_vertex, checked, verts_count, component );
     bool* segmentated = new bool[verts_count];
     std::vector< int > cycle;
     if( !find_any_cycle( graph, matrix_graph, any_vertex, cycle ) )
-        ans = true;
+        return true;
     else
     {
         std::vector< Area > areas;
@@ -825,11 +825,8 @@ bool is_connection_component_planar( Graph* graph, int** matrix_graph, int any_v
                 best_segment.hash_vertices.insert(best_segment.vertices[i]);
             if (any_segment)
             {
-                if (best_segment.involved_areas.size() == 0)
-                {
-                    ans = false;
-                    return ans;
-                }
+                if (best_segment.involved_areas.empty())
+                    return false;
             }
             else
                 return true;
@@ -841,7 +838,7 @@ bool is_connection_component_planar( Graph* graph, int** matrix_graph, int any_v
     }
 
     delete[] segmentated;
-    return ans;
+    return true;
 }
 
 bool is_graph_planar( int vert, int edge, int* from, int* to )
