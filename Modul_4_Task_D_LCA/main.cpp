@@ -1,32 +1,43 @@
 #include <iostream>
 #include <vector>
+#include <stack>
 
-void build_graph_tree( int n, std::vector < std::vector<int> >& graph_tree )
+struct Node_dfs
 {
+    int vertex;
     int parent;
-    for( size_t i = 1; i < n; ++i )
-    {
-        std::cin >> parent;
-        graph_tree[parent].emplace_back(i);
-    }
-}
+
+    Node_dfs( int v, int p ) : vertex( v ), parent( p ) {}
+};
 
 void reprocessing_dfs( std::vector< std::vector< int > >& graph_tree, std::vector< std::vector< int > >& jump,
-                       std::vector< int >& in_time, std::vector< int >& out_time,  int vertex, int parent, int& timer )
+          std::vector< int >& in_time, std::vector< int >& out_time,  int vertex, int parent)
 {
-    in_time[vertex] = ++timer;
-    jump[vertex][0] = parent;
-
-    for( int i = 1; i < jump[vertex].size(); ++i )
-        jump[vertex][i] = jump[jump[vertex][i - 1]][i - 1];
-
-    for( int i = 0; i < graph_tree[vertex].size(); ++i )
-        if( graph_tree[vertex][i] != parent )
-            reprocessing_dfs( graph_tree, jump, in_time, out_time,
-                              graph_tree[vertex][i] , vertex, timer );
-
-    out_time[vertex] = ++timer;
-
+    std::stack< Node_dfs > stack;
+    std::vector< bool > colour( graph_tree.size(), false );
+    stack.push( Node_dfs( vertex, parent ) );
+    int timer = 0;
+    while( !stack.empty() )
+    {
+        vertex = stack.top().vertex;
+        parent = stack.top().parent;
+        if( !colour[vertex] )
+        {
+            colour[vertex] = true;
+            in_time[vertex] = ++timer;
+            jump[vertex][0] = parent;
+            for( int i = 1; i < jump[vertex].size(); ++i )
+                jump[vertex][i] = jump[jump[vertex][i - 1]][i - 1];
+            for( int to : graph_tree[vertex] )
+                if( to != parent )
+                    stack.push( Node_dfs( to, vertex ) );
+        }
+        else
+        {
+            out_time[vertex] = ++timer;
+            stack.pop();
+        }
+    }
 }
 
 int find_log( int n )
@@ -43,7 +54,7 @@ int find_log( int n )
 
 void set_jump_size( int log, std::vector < std::vector<int> >& jump )
 {
-    for( int i = 0; i < jump.size(); ++i )
+    for( size_t i = 0; i < jump.size(); ++i )
         jump[i].resize( log + 1, 0 );
 }
 
@@ -61,7 +72,7 @@ int get_least_common_ancestor( int u, int v, std::vector< int >& in_time, std::v
     return jump[u][0];
 }
 
-void process_requests( int n, int m, std::vector< int >& in_time, std::vector< int >& out_time, std::vector< std::vector < int > >& jump )
+long long process_requests( int n, int m, std::vector< int >& in_time, std::vector< int >& out_time, std::vector< std::vector < int > >& jump )
 {
     long long a1, a2, x, y, z;
     std::cin >> a1 >> a2 >> x >> y >> z;
@@ -74,24 +85,31 @@ void process_requests( int n, int m, std::vector< int >& in_time, std::vector< i
         sum += v;
         --m;
     }
-    std::cout << sum << std::endl;
+//    std::cout << sum << std::endl;
+    return sum;
 }
 
-void process_LCA_requests( int n, int m )
+long long process_LCA_requests( int n, int m, std::vector < std::vector<int> >& graph_tree )
 {
-    std::vector < std::vector<int> > graph_tree( n ), jump(n);
-    build_graph_tree( n, graph_tree );
-    int log_n = find_log( n ), timer = 0;
+    std::vector < std::vector<int> >  jump(n);
+    int log_n = find_log( n );
     set_jump_size( log_n, jump );
     std::vector< int > in_time( n ), out_time( n );
-    reprocessing_dfs( graph_tree, jump, in_time, out_time, 0, 0, timer );
-    process_requests( n, m, in_time, out_time, jump );
+    reprocessing_dfs( graph_tree, jump, in_time, out_time, 0, 0 );
+    return process_requests( n, m, in_time, out_time, jump );
 }
 
 int main()
 {
     int n, m;
     std::cin >> n >> m;
-    process_LCA_requests( n, m );
+    std::vector < std::vector<int> > graph_tree( n );
+    int parent;
+    for( size_t i = 1; i < n; ++i )
+    {
+        std::cin >> parent;
+        graph_tree[parent].emplace_back(i);
+    }
+    std::cout << process_LCA_requests( n, m, graph_tree ) << std::endl;
     return 0;
 }
