@@ -38,9 +38,7 @@ public:
     class List_iterator;
 
     template <bool is_const = true>
-    class List_iterator : public std::iterator<std::bidirectional_iterator_tag, T, std::ptrdiff_t,
-            typename std::conditional<is_const, const T*, T*>::type,
-            typename std::conditional<is_const, const T&, T&>::type>
+    class List_iterator
     {
     private:
         friend class List;
