@@ -49,32 +49,26 @@ public:
         //// non const iterator
         typedef typename std::conditional<is_const, const T*, T*>::type Pointer;
 
-
         using difference_type = std::ptrdiff_t;
         using value_type = T;
         using reference = Reference ;
         using pointer = Pointer ;
         using iterator_category = std::bidirectional_iterator_tag;
 
-        //        List_iterator<true>( const List_iterator<false>& other ) : node( other.node ) {}
         List_iterator(Node* nd = nullptr) : node(nd) {}
-
-//        List_iterator( const List_iterator& other ) : node( other.node ) {}
         List_iterator(const List_iterator<false>& other ) : node( other.node ) {}
         List_iterator(const List_iterator<true>& other ) : node( other.node ) {}
-        T& operator*() const;// dereferencing operator
-        List_iterator & operator=(const List_iterator<true>& other);
-        List_iterator & operator=(const List_iterator<false>& other);
-        bool operator==(const List_iterator<true>& other ) const;
-        bool operator==(const List_iterator<false>& other ) const;
-        bool operator!=(const List_iterator<true>& other ) const;
-        bool operator!=(const List_iterator<false>& other ) const;
+        T& operator * () const;// dereferencing operator
+        List_iterator& operator=(const List_iterator<true>& other);
+        List_iterator& operator=(const List_iterator<false>& other);
+        bool operator==(const List_iterator<true>& other) const;
+        bool operator==(const List_iterator<false>& other) const;
+        bool operator!=(const List_iterator<true>& other) const;
+        bool operator!=(const List_iterator<false>& other) const;
         List_iterator& operator++();//prefix
-//        List_iterator operator++(int);//postfix
-        List_iterator & operator--();
-//        List_iterator operator--(int);
-
-
+        List_iterator& operator--();//prefix
+        List_iterator operator++(int);
+        List_iterator operator--(int);
     };
 private:
 
@@ -82,16 +76,19 @@ private:
     Node* head;
     Node* tail;
 public:
+
     using difference_type = std::ptrdiff_t;
     using value_type = T;
     using reference =  T&;
     using pointer =  T*;
     using iterator_category = std::bidirectional_iterator_tag;
+    using iterator = List_iterator<false>;
+    using const_iterator = List_iterator<true>;
+
     //Good story to tell
 //    using Iterator = List_iterator<false>;
 //    using Const_iterator = List_iterator<true>;
-    using iterator = List_iterator<false>;
-    using const_iterator = List_iterator<true>;
+
 
     List();
     List(size_t size_, const T& value = T() );
@@ -109,30 +106,30 @@ public:
     T back() const;
     bool empty() const;
     void clear();
-    iterator begin();
-    iterator end();
-//    const_iterator begin() const;
-//    const_iterator end() const;
-    const_iterator cbegin() const;
-    const_iterator cend() const;
-    std::reverse_iterator<iterator> rbegin();
-    std::reverse_iterator<const_iterator> crbegin() const;
-    std::reverse_iterator<iterator> rend();
-    std::reverse_iterator<const_iterator> crend() const;
-    iterator insert(const_iterator position, const T& value );
-    iterator insert(const_iterator position, T&& value );
-    template< class InputIt >
-    iterator insert( iterator pos, InputIt first, InputIt last);
-    void erase( iterator pos );
-    void erase( iterator first, iterator last );
+    void reverse();
+    void unique();
+
     void push_back(const T& value );
     void push_back( T&& value );
     void push_front( const T& value );
     void push_front( T&& value );
     void pop_back();
     void pop_front();
-    void reverse();
-    void unique();
+
+    iterator begin();
+    iterator end();
+    const_iterator cbegin() const;
+    const_iterator cend() const;
+    std::reverse_iterator<iterator> rbegin();
+    std::reverse_iterator<iterator> rend();
+    std::reverse_iterator<const_iterator> crbegin() const;
+    std::reverse_iterator<const_iterator> crend() const;
+
+    iterator insert(const_iterator position, const T& value );
+    iterator insert(const_iterator position, T&& value );
+    template< class InputIt >
+    iterator insert( iterator pos, InputIt first, InputIt last);
+
     template <class... Args>
     void emplace( const_iterator position, Args&&... args);
     template <class... Args>
@@ -141,21 +138,17 @@ public:
     template <class... Args>
     void emplace_front(Args&&... args);
 
+    void erase( iterator pos );
+    void erase( iterator first, iterator last );
+
 private:
     void clean_body_memory();
     void copy( const List& other );
+    void insert_before_position(const_iterator position, Node* new_node);
+    void delete_node_in_position(const_iterator position);
 };
 
 //// Iterator functions
-
-//template <class T>
-//template <bool is_const>
-//typename List<T>::template List_iterator<is_const> (const List_iterator<false>& other )
-//{
-//
-//}
-
-
 
 template <class T>
 template <bool is_const>
@@ -163,13 +156,6 @@ T& List<T>::List_iterator<is_const>::operator*() const
 {
     return (node->value_node->value);
 }
-
-//template <class T>
-//template <bool is_const>
-//typename List<T>::template List_iterator<is_const>::Reference List<T>::List_iterator<is_const>::operator*()
-//{
-//    return node->value_node->value;
-//}
 
 template <class T>
 template <bool is_const>
@@ -217,23 +203,23 @@ typename List<T>::template List_iterator<is_const>& List<T>::List_iterator<is_co
     return *this;
 }
 
-//template <class T>
-//template <bool is_const>
-//typename List<T>::template List_iterator<is_const> List<T>::List_iterator<is_const>::operator++(int)
-//{
-//    Node* tmp = node;
-//    node = node->next;
-//    return List_iterator<is_const>(tmp);
-//}
-//
-//template <class T>
-//template <bool is_const>
-//typename List<T>::template List_iterator<is_const> List<T>::List_iterator<is_const>::operator--(int)
-//{
-//    Node* tmp = node;
-//    node = node->previous;
-//    return List_iterator<is_const>(tmp);
-//}
+template <class T>
+template <bool is_const>
+typename List<T>::template List_iterator<is_const> List<T>::List_iterator<is_const>::operator++(int)
+{
+    Node* tmp = node;
+    node = node->next;
+    return List_iterator<is_const>(tmp);
+}
+
+template <class T>
+template <bool is_const>
+typename List<T>::template List_iterator<is_const> List<T>::List_iterator<is_const>::operator--(int)
+{
+    Node* tmp = node;
+    node = node->previous;
+    return List_iterator<is_const>(tmp);
+}
 
 template <class T>
 template <bool is_const>
@@ -442,23 +428,11 @@ typename List<T>::iterator List<T>::begin()
     return iterator( head->next );
 }
 
-//template <class T>
-//typename List<T>::const_iterator List<T>::begin() const
-//{
-//    return const_iterator( head->next );
-//}
-
 template <class T>
 typename List<T>::iterator List<T>::end()
 {
     return iterator( tail );
 }
-
-//template <class T>
-//typename List<T>::const_iterator List<T>::end() const
-//{
-//    return const_iterator( tail );
-//}
 
 template <class T>
 typename List<T>::const_iterator List<T>::cbegin() const
@@ -497,31 +471,31 @@ std::reverse_iterator<typename List<T>::const_iterator> List<T>::crend() const
 }
 
 template <class T>
-typename List<T>::iterator List<T>::insert(List::const_iterator position, const T& value)
+void List<T>::insert_before_position(List::const_iterator position, Node* new_node)
 {
     ++size_;
     Node* prev = position.node->previous;
+    prev->next = new_node;
+    position.node->previous = new_node;
+    new_node->next = position.node;
+    new_node->previous = prev;
+}
+
+template <class T>
+typename List<T>::iterator List<T>::insert(List::const_iterator position, const T& value)
+{
     Node* body = new Node();
     body->value_node = new Value_node( value );
-    prev->next = body;
-    position.node->previous = body;
-    body->next = position.node;
-    body->previous = prev;
+    insert_before_position(position, body);
     return position;
 }
 
 template <class T>
 typename List<T>::iterator List<T>::insert(List::const_iterator position, T&& value)
 {
-//    std::cout << "inser move" << std::endl;
-    ++size_;
-    Node* prev = position.node->previous;
     Node* body = new Node();
     body->value_node = new Value_node( std::move(value) );
-    prev->next = body;
-    body->previous = prev;
-    position.node->previous = body;
-    body->next = position.node;
+    insert_before_position(position, body);
     return position;
 }
 
@@ -538,109 +512,77 @@ typename List<T>::iterator List<T>::insert(List::iterator pos, InputIt first, In
 }
 
 template <class T>
-void List<T>::erase(List::iterator pos)
+void List<T>::delete_node_in_position(const_iterator position )
 {
     --size_;
-    Node* next_node = pos.node->next;
-    Node* prev_node = pos.node->previous;
+    Node* next_node = position.node->next;
+    Node* prev_node = position.node->previous;
     next_node->previous = prev_node;
     prev_node->next = next_node;
-    delete pos.node->value_node;
-    delete pos.node;
-//    return Iterator(next_node);
+    delete position.node->value_node;
+    delete position.node;
+}
+
+template <class T>
+void List<T>::erase(List::iterator pos)
+{
+    delete_node_in_position(pos);
 }
 
 template <class T>
 void List<T>::erase(List::iterator first, List::iterator last)
 {
-//    Iterator return_iterator;
     const_iterator tmp;
     while(first != last)
     {
         tmp = first;
         ++first;
-        erase(tmp);
-//        return_iterator = erase(tmp);
-
+        delete_node_in_position(tmp);
     }
-//    return return_iterator;
 }
 
 template <class T>
 void List<T>::push_back(const T &value)
 {
-    ++size_;
     Node* body = new Node();
     body->value_node = new Value_node( value );
-    Node* prev = tail->previous;
-    body->previous = prev;
-    body->next = tail;
-    prev->next = body;
-    tail->previous = body;
+    insert_before_position(iterator(tail), body);
 }
 
 template<class T>
 void List<T>::push_back(T &&value)
 {
-    ++size_;
     Node* body = new Node();
     body->value_node = new Value_node( std::move( value ) );
-    Node* prev = tail->previous;
-    body->previous = prev;
-    body->next = tail;
-    prev->next = body;
-    tail->previous = body;
+    insert_before_position(iterator(tail), body);
 }
 
 template <class T>
 void List<T>::push_front(const T &value)
 {
-    ++size_;
     Node* body = new Node();
     body->value_node = new Value_node( value );
-    Node* next_node = head->next;
-    body->next = next_node;
-    body->previous = head;
-    head->next = body;
-    next_node->previous = body;
+    insert_before_position(iterator(head->next), body);
 }
 
 template <class T>
 void List<T>::push_front(T&& value)
 {
-//    std::cout << " push front  with &&" << std::endl;
-    ++size_;
     Node* body = new Node();
     body->value_node = new Value_node( std::move(value) );
-    Node* next_node = head->next;
-    body->next = next_node;
-    body->previous = head;
-    head->next = body;
-    next_node->previous = body;
+    insert_before_position(iterator(head->next), body);
 }
 
 template <class T>
 void List<T>::pop_back()
 {
-    --size_;
-    Node* body = tail->previous;
-    Node* prev = body->previous;
-    prev->next = tail;
-    tail->previous = prev;
-    delete body->value_node;
-    delete body;
+    delete_node_in_position(const_iterator(tail->previous));
 }
 
 template <class T>
 void List<T>::pop_front()
 {
-    --size_;
-    Node* body = head->next;
-    Node* next_node = body->next;
-    next_node->previous = head;
-    head->next = next_node;
-    delete body->value_node;
-    delete body;
+    delete_node_in_position(const_iterator(head->next));
 }
 
 template <class T>
@@ -650,17 +592,13 @@ void List<T>::reverse()
         return;
     Node* body = tail->previous;
     body->next = nullptr;
-    tail->previous = nullptr;
     delete tail;
     head->next->previous = nullptr;
-    head->next = nullptr;
     delete head;
     Node* new_head = new Node;
     Node* new_tail = new Node;
     Node* next_node = body->previous;
     Node* prev = new_head;
-    prev->next = body;
-    body->previous = prev;
     for( size_t i = 0; i < size_; ++i )
     {
         prev->next = body;
@@ -677,8 +615,6 @@ void List<T>::reverse()
     new_tail->previous = prev;
     head = new_head;
     tail = new_tail;
-    head->previous = nullptr;
-    tail->next = nullptr;
 }
 
 template <class T>
@@ -717,42 +653,27 @@ template <class T>
 template <class... Args>
 void List<T>::emplace(List::const_iterator position, Args &&... args)
 {
-    ++size_;
-    Node* prev = position.node->previous;
     Node* body = new Node();
     body->value_node = new Value_node( T(std::forward<Args>(args)...)  );
-    prev->next = body;
-    position.node->previous = body;
-    body->next = position.node;
-    body->previous = prev;
+    insert_before_position(position, body);
 }
 
 template <class T>
 template <class... Args>
 void List<T>::emplace_back(Args &&... args)
 {
-    ++size_;
     Node* body = new Node();
     body->value_node = new Value_node(T(std::forward<Args>(args)...) );
-    Node* prev = tail->previous;
-    body->previous = prev;
-    body->next = tail;
-    prev->next = body;
-    tail->previous = body;
+    insert_before_position(const_iterator(tail), body);
 }
 
 template <class T>
 template <class... Args>
 void List<T>::emplace_front(Args &&... args)
 {
-    ++size_;
     Node* body = new Node();
     body->value_node = new Value_node( T(std::forward<Args>(args)...)  );
-    Node* next_node = head->next;
-    body->next = next_node;
-    body->previous = head;
-    head->next = body;
-    next_node->previous = body;
+    insert_before_position(const_iterator(head->next), body);
 }
 
 #endif //OOP_LIST_LIST_H
