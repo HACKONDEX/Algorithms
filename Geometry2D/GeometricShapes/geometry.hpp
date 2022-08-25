@@ -145,7 +145,7 @@ public:
     void Reflect(Line axis) override;
     void Scale(Point centre, double coefficient) override;
     [[nodiscard]] Point GetCentre() const override;
-    [[nosicard]] double Perimeter() const override;
+    [[nodiscard]] double Perimeter() const override;
     [[nodiscard]] double Area() const override;
     [[nodiscard]] bool IsCongruentTo(const Shape &another) const override;
     [[nodiscard]] bool IsSimilarTo(const Shape &another) const override;
@@ -277,3 +277,4 @@ Point RecoverSecondVertexOfCut(Point A, Point centre);
 int NextShiftedIndex(int i, int shift, int whole_variants_count);
 double GetSimilarityCoefficient(const Polygon &first, const Polygon &second);
 double SineA(Point A, Point B, Point C);
+

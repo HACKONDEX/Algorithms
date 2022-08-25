@@ -1,0 +1,4 @@
+/home/hakob/Desktop/Algorithms/Algorithms/Geometry/cmake-build-debug/CMakeFiles/GeomLib.dir
+/home/hakob/Desktop/Algorithms/Algorithms/Geometry/cmake-build-debug/CMakeFiles/Geometry.dir
+/home/hakob/Desktop/Algorithms/Algorithms/Geometry/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/hakob/Desktop/Algorithms/Algorithms/Geometry/cmake-build-debug/CMakeFiles/rebuild_cache.dir
