@@ -1,0 +1,10 @@
+/snap/clion/204/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/snap/clion/204/bin/ninja/linux/ninja -G Ninja -S /home/hakob/Desktop/Algorithms/Algorithms/Modul_3_Task_A_Prim -B /home/hakob/Desktop/Algorithms/Algorithms/Modul_3_Task_A_Prim/cmake-build-debug
+-- The CXX compiler identification is GNU 11.2.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/hakob/Desktop/Algorithms/Algorithms/Modul_3_Task_A_Prim/cmake-build-debug
