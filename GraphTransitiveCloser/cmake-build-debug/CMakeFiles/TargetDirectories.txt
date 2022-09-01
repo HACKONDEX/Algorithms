@@ -1,3 +1,0 @@
-/home/hakob/Desktop/Algorithms/Algorithms/GraphTransitiveCloser/cmake-build-debug/CMakeFiles/GraphTransitiveCloser.dir
-/home/hakob/Desktop/Algorithms/Algorithms/GraphTransitiveCloser/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/hakob/Desktop/Algorithms/Algorithms/GraphTransitiveCloser/cmake-build-debug/CMakeFiles/rebuild_cache.dir
